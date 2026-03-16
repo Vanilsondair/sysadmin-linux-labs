@@ -88,4 +88,22 @@ sudo tcpdump -r cap.pcap icmp      # ler ficheiro filtrado
 
 ---
 
+---
+
+## 🛡️ Semana 2 — Firewall com UFW, iptables e Fail2ban
+
+### O que aprendi
+- Configuração de firewall com **UFW** — bloquear tudo e permitir só o necessário
+- Regras avançadas com **iptables** — bloquear IPs, limitar conexões por minuto
+- Protecção contra brute force com **Fail2ban**
+- Teste de regras de firewall com **nmap**
+- Análise de logs de autenticação com **fail2ban-regex**
+
+---
+
+### 🔧 Comandos principais
+
+#### UFW — Firewall simplificado
+```bash
+
 *Ubuntu Server | VirtualBox | Moçambique 🇲🇿*
