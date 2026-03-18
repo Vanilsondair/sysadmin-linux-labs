@@ -106,4 +106,89 @@ sudo tcpdump -r cap.pcap icmp      # ler ficheiro filtrado
 #### UFW — Firewall simplificado
 ```bash
 
+---
+
+## 🔐 Semana 3 — VPN com WireGuard
+
+### O que aprendi
+- Conceito de túnel cifrado e como funciona uma VPN
+- WireGuard vs OpenVPN — porquê o WireGuard é o futuro
+- Geração de chaves criptográficas (pública/privada)
+- Configuração de servidor e cliente WireGuard
+- Abertura de porta UDP 51820 no UFW
+- Verificação de tráfego com `wg show` e `tcpdump`
+
+---
+
+### 🔧 Comandos principais
+
+#### Instalação e chaves
+```bash
+sudo apt install wireguard -y
+
+# Gerar par de chaves
+wg genkey | tee chave_privada | wg pubkey > chave_publica
+cat chave_privada
+cat chave_publica
+```
+
+#### Configuração do servidor (/etc/wireguard/wg0.conf)
+```ini
+[Interface]
+PrivateKey = CHAVE_PRIVADA_DO_SERVIDOR
+Address = 10.0.0.1/24
+ListenPort = 51820
+
+[Peer]
+PublicKey = CHAVE_PUBLICA_DO_CLIENTE
+AllowedIPs = 10.0.0.2/32
+```
+
+#### Configuração do cliente (/etc/wireguard/wg1.conf)
+```ini
+[Interface]
+PrivateKey = CHAVE_PRIVADA_DO_CLIENTE
+Address = 10.0.0.2/24
+
+[Peer]
+PublicKey = CHAVE_PUBLICA_DO_SERVIDOR
+Endpoint = 10.0.0.1:51820
+AllowedIPs = 10.0.0.0/24
+```
+
+#### Gerir a VPN
+```bash
+sudo chmod 600 /etc/wireguard/wg0.conf   # proteger ficheiro de chaves
+sudo wg-quick up wg0                      # activar servidor
+sudo wg-quick up wg1                      # activar cliente
+sudo wg-quick down wg0                    # desactivar
+sudo wg show                              # ver estado do túnel e peers
+sudo systemctl enable wg-quick@wg0       # activar no boot
+```
+
+#### Abrir porta no UFW
+```bash
+sudo ufw allow 51820/udp
+```
+
+#### Verificar tráfego
+```bash
+sudo tcpdump -i wg0                       # capturar tráfego na interface VPN
+ping -c 4 10.0.0.1 -I wg1               # testar túnel pelo cliente
+```
+
+---
+
+### 💡 Lição do laboratório
+> Segurança não é só firewall — é camadas.  
+> A VPN é uma delas.
+
+---
+
+## 🔜 Próximas semanas
+- [x] Semana 1 — Networking no Linux
+- [x] Semana 2 — Firewall com UFW e iptables
+- [x] Semana 3 — VPN com WireGuard
+- [ ] Semana 4 — Monitoring com Netdata
+
 *Ubuntu Server | VirtualBox | Moçambique 🇲🇿*
