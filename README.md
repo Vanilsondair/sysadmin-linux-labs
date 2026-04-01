@@ -191,4 +191,109 @@ ping -c 4 10.0.0.1 -I wg1               # testar túnel pelo cliente
 - [x] Semana 3 — VPN com WireGuard
 - [ ] Semana 4 — Monitoring com Netdata
 
+---
+
+## 📊 Semana 4 — Monitoring com Netdata e Logs Avançados
+
+### O que aprendi
+- Monitoring em tempo real com **Netdata** — dashboard web com alertas automáticos
+- Análise avançada de logs com **journalctl**
+- Análise forense de logs SSH — detecção de tentativas de intrusão
+- Gestão automática de logs com **logrotate**
+- Script **Bash** de monitorização com alertas automáticos
+
+---
+
+### 🔧 Comandos principais
+
+#### journalctl — Logs do systemd
+```bash
+journalctl                                      # todos os logs
+journalctl -u ssh                               # logs do serviço SSH
+journalctl -u ssh --since "1 hour ago"          # SSH última hora
+journalctl -p err                               # só erros
+journalctl -f                                   # seguir em tempo real
+journalctl --since "2024-01-01" --until "2024-01-02"  # por data
+```
+
+#### Análise forense de logs SSH
+```bash
+# Contar tentativas falhadas
+journalctl -u ssh --since "400 hour ago" | grep "Failed password" | wc -l
+
+# Identificar IPs atacantes
+journalctl -u ssh --since "400 hour ago" | grep "Failed password" | awk '{print $11}' | sort | uniq -c | sort -rn
+```
+
+#### Netdata
+```bash
+# Instalar
+bash <(curl -L -Ss https://my-netdata.io/kickstart.sh)
+
+# Gerir serviço
+sudo systemctl status netdata
+sudo systemctl enable netdata
+
+# Abrir porta no UFW
+sudo ufw allow 19999
+
+# Aceder ao dashboard
+# http://IP_DO_SERVIDOR:19999
+```
+
+#### logrotate
+```bash
+cat /etc/logrotate.conf                          # configuração global
+ls /etc/logrotate.d/                             # configurações por serviço
+sudo logrotate -f /etc/logrotate.conf            # forçar rotação
+```
+
+#### Script Bash de monitorização
+```bash
+#!/bin/bash
+TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
+LOG="$HOME/monitor.log"
+CPU=$(top -bn1 | grep "Cpu(s)" | awk '{print $2}' | cut -d. -f1)
+RAM=$(free | grep Mem | awk '{printf "%.0f", $3/$2 * 100}')
+DISCO=$(df / | tail -1 | awk '{print $5}' | cut -d% -f1)
+echo "[$TIMESTAMP] CPU: $CPU% | RAM: $RAM% | Disco: $DISCO%" | tee -a $LOG
+[ $CPU -gt 80 ]   && echo "ALERTA: CPU em $CPU%"    | tee -a $LOG
+[ $RAM -gt 85 ]   && echo "ALERTA: RAM em $RAM%"    | tee -a $LOG
+[ $DISCO -gt 90 ] && echo "ALERTA: Disco em $DISCO%" | tee -a $LOG
+```
+
+#### Automatizar com crontab
+```bash
+crontab -e
+# Adicionar:
+*/5 * * * * /home/administrador/monitor.sh
+```
+
+---
+
+### 🔍 Resultado da análise forense
+```
+219 tentativas de login falhadas detectadas
+201 usuario_falso
+ 18 127.0.0.1
+```
+
+---
+
+### 💡 Lição do laboratório
+> Um servidor pode estar a falhar silenciosamente.
+> Sem monitoring, só descobres quando já é tarde.
+
+---
+
+## ✅ Plano completo
+- [x] Semana 1 — Networking no Linux
+- [x] Semana 2 — Firewall com UFW e iptables
+- [x] Semana 3 — VPN com WireGuard
+- [x] Semana 4 — Monitoring com Netdata
+
+## 🔜 Próximos laboratórios
+- [ ] Disk encryption com LUKS
+- [ ] Content filtering com Pi-hole
+
 *Ubuntu Server | VirtualBox | Moçambique 🇲🇿*
